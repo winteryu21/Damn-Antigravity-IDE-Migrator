@@ -103,7 +103,7 @@ class DatabaseMigrator:
                 elif (
                     key.startswith("secret://") or 
                     "antigravity" in key.lower() or 
-                    key in ["colorThemeData", "editorFontInfo", "iconThemeData"]
+                    key in ["colorThemeData", "editorFontInfo", "iconThemeData", "productIconThemeData"]
                 ):
                     if key not in new_data:
                         # Key is missing in new DB, copy it
@@ -111,9 +111,9 @@ class DatabaseMigrator:
                         if not self.dry_run:
                             new_cursor.execute("INSERT INTO ItemTable (key, value) VALUES (?, ?)", (key, old_val))
                         keys_inserted += 1
-                    elif new_data[key] != old_val and key == "antigravityUserSettings.allUserSettings":
-                        # Overwrite specific config if different and empty/default
-                        logger.info(f"Updating user settings key: {key}")
+                    elif new_data[key] != old_val:
+                        # Overwrite if value is different
+                        logger.info(f"Updating key: {key}")
                         if not self.dry_run:
                             new_cursor.execute("INSERT OR REPLACE INTO ItemTable (key, value) VALUES (?, ?)", (key, old_val))
                         keys_updated += 1

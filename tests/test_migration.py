@@ -64,8 +64,8 @@ class TestMigrationTool(unittest.TestCase):
             
         # Missing key should be copied
         self.assertEqual(result["editor.fontFamily"], "Pretendard")
-        # Existing key should remain unchanged (preserve new version settings)
-        self.assertEqual(result["workbench.colorTheme"], "Solarized Dark")
+        # Existing key should be overwritten with old preference
+        self.assertEqual(result["workbench.colorTheme"], "Solarized Light")
 
     def test_extensions_migration(self):
         # 1. Create a dummy extension folder in old extensions
@@ -155,12 +155,16 @@ class TestMigrationTool(unittest.TestCase):
         old_conn.commit()
         old_conn.close()
         
-        # Setup new DB with some trajectory summaries
+        # Setup new DB with some trajectory summaries and a conflicting settings key
         new_conn = sqlite3.connect(new_db_path)
         new_conn.execute("CREATE TABLE ItemTable (key TEXT PRIMARY KEY, value TEXT)")
         new_conn.execute(
             "INSERT INTO ItemTable (key, value) VALUES (?, ?)", 
             ("antigravityUnifiedStateSync.trajectorySummaries", base64.b64encode(b"NEW_TRAJECTORY").decode())
+        )
+        new_conn.execute(
+            "INSERT INTO ItemTable (key, value) VALUES (?, ?)", 
+            ("antigravityUserSettings.allUserSettings", "settings_value_new")
         )
         new_conn.commit()
         new_conn.close()

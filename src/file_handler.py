@@ -39,11 +39,11 @@ class FileMigrator:
             except Exception as e:
                 logger.error(f"Failed to read existing new settings.json: {e}")
                 
-        # Merge settings (keep new settings if they exist, add missing ones from old)
+        # Merge settings (old settings overwrite new settings)
         merged = False
         for key, value in old_settings.items():
-            if key not in new_settings:
-                logger.info(f"Adding setting: {key} -> {value}")
+            if key not in new_settings or new_settings[key] != value:
+                logger.info(f"Updating setting: {key} -> {value}")
                 new_settings[key] = value
                 merged = True
                 
