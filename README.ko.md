@@ -37,25 +37,41 @@ GitHub 오픈소스 배포를 고려하여 고수준의 예외 처리와 안전 
 
 ## 사용 방법
 
-터미널이나 명령 프롬프트(CMD, PowerShell)에서 다음 명령어를 실행합니다.
+Windows 환경에서는 루트 디렉터리에 생성된 배치 파일을 사용하여 편리하게 실행하거나, 파이썬 명령어를 직접 터미널에 입력하여 실행할 수 있습니다.
 
 ### 1. Dry-Run 시뮬레이션 수행 (권장)
-실제 파일 수정을 하지 않고 모의 실행해 봅니다:
-```bash
-python -m src.main --dry-run --verbose
-```
+실제 파일이나 DB를 수정하지 않고 사전에 모의 실행 결과를 확인합니다:
+- **배치 파일 사용**:
+  ```cmd
+  migrate.bat --dry-run --verbose
+  ```
+- **파이썬 명령어 사용**:
+  ```bash
+  python -m src.main --dry-run --verbose
+  ```
 
 ### 2. 마이그레이션 실행
-실제 마이그레이션을 진행합니다 (자동으로 백업 폴더가 생성됩니다):
-```bash
-python -m src.main
-```
+실제 마이그레이션을 실행합니다 (대상 폴더의 백업이 자동 생성됩니다):
+- **배치 파일 사용**:
+  `migrate.bat` 파일을 더블 클릭하여 실행하거나, 터미널에서 다음 명령을 실행합니다:
+  ```cmd
+  migrate.bat
+  ```
+- **파이썬 명령어 사용**:
+  ```bash
+  python -m src.main
+  ```
 
 ### 3. 백업 파일로부터 복원 (롤백 필요 시)
-문제가 발생하여 자동 생성된 백업 데이터를 수동 복원해야 할 경우 아래 명령을 실행합니다:
-```bash
-python -m src.main --restore "C:\Users\<사용자명>\AppData\Roaming\Antigravity IDE\migration_backups\<타임스탬프>"
-```
+문제가 발생하여 특정 백업 파일로부터 설정을 수동 복원해야 하는 경우:
+- **배치 파일 사용**:
+  ```cmd
+  restore.bat "C:\Users\<사용자명>\AppData\Roaming\Antigravity IDE\migration_backups\<타임스탬프>"
+  ```
+- **파이썬 명령어 사용**:
+  ```bash
+  python -m src.main --restore "C:\Users\<사용자명>\AppData\Roaming\Antigravity IDE\migration_backups\<타임스탬프>"
+  ```
 
 ### 4. CLI 옵션 가이드
 ```text

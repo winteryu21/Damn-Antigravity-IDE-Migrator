@@ -37,25 +37,41 @@ This tool requires **Python 3.8+** with no external dependencies (uses standard 
 
 ## Usage
 
-Run the tool using the command line:
+On Windows, you can use the provided batch files in the root directory for convenience, or run the raw python commands.
 
 ### 1. Perform a Dry-Run Simulation (Highly Recommended)
 Preview the actions without modifying any files:
-```bash
-python -m src.main --dry-run --verbose
-```
+- **Using Batch File**:
+  ```cmd
+  migrate.bat --dry-run --verbose
+  ```
+- **Using Python**:
+  ```bash
+  python -m src.main --dry-run --verbose
+  ```
 
 ### 2. Run the Standard Migration
 Perform the full migration (creates backup automatically):
-```bash
-python -m src.main
-```
+- **Using Batch File**:
+  Double-click `migrate.bat`, or run from terminal:
+  ```cmd
+  migrate.bat
+  ```
+- **Using Python**:
+  ```bash
+  python -m src.main
+  ```
 
 ### 3. Restore from a Backup
 If you need to restore your settings from an automatically created backup:
-```bash
-python -m src.main --restore "C:\Users\<Username>\AppData\Roaming\Antigravity IDE\migration_backups\<timestamp>"
-```
+- **Using Batch File**:
+  ```cmd
+  restore.bat "C:\Users\<Username>\AppData\Roaming\Antigravity IDE\migration_backups\<timestamp>"
+  ```
+- **Using Python**:
+  ```bash
+  python -m src.main --restore "C:\Users\<Username>\AppData\Roaming\Antigravity IDE\migration_backups\<timestamp>"
+  ```
 
 ### 4. Command-Line Options
 ```text
