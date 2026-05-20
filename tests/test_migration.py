@@ -228,5 +228,21 @@ class TestMigrationTool(unittest.TestCase):
         with open(settings_path, "r") as f:
             self.assertEqual(f.read(), '{"test": "original"}')
 
+    def test_backup_cleanup(self):
+        settings_path = os.path.join(self.paths.new_roaming, "User", "settings.json")
+        with open(settings_path, "w") as f:
+            f.write('{"test": "original"}')
+            
+        backup_mgr = BackupManager(self.paths)
+        backup_path = backup_mgr.create_backup()
+        
+        self.assertTrue(os.path.exists(backup_path))
+        
+        # Clean backups
+        backup_mgr.clean_backups()
+        
+        # Verify backup directory does not exist anymore
+        self.assertFalse(os.path.exists(backup_mgr.backup_dir))
+
 if __name__ == "__main__":
     unittest.main()

@@ -44,7 +44,7 @@ def is_process_running(process_name: str) -> bool:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Migrates configurations, extensions, and conversations from old Antigravity to new Antigravity IDE."
+        description="Damn Antigravity IDE Migrator: Migrates configurations, extensions, and conversations from old Antigravity to new Antigravity IDE."
     )
     parser.add_argument(
         "--dry-run",
@@ -62,6 +62,11 @@ def main() -> None:
         help="Path to a backup directory to restore configurations from."
     )
     parser.add_argument(
+        "--cleanup",
+        action="store_true",
+        help="Delete all migration backups to free up space."
+    )
+    parser.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Enable verbose debug logging in console."
@@ -71,7 +76,7 @@ def main() -> None:
     setup_logging(args.verbose)
     
     logger = logging.getLogger("migration")
-    logger.info("=== Antigravity IDE Migration Tool ===")
+    logger.info("=== Damn Antigravity IDE Migrator ===")
     
     try:
         paths = resolve_paths()
@@ -81,6 +86,16 @@ def main() -> None:
         
     backup_mgr = BackupManager(paths)
     
+    # If cleaning up backups
+    if args.cleanup:
+        try:
+            backup_mgr.clean_backups()
+            logger.info("Backup cleanup completed successfully.")
+        except Exception as e:
+            logger.error(f"Backup cleanup failed: {e}")
+            sys.exit(1)
+        sys.exit(0)
+        
     # If restoring a backup
     if args.restore:
         if not os.path.exists(args.restore):

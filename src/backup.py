@@ -87,3 +87,12 @@ class BackupManager:
                 except Exception as e:
                     logger.error(f"Failed to restore {name} to {dest_file}: {e}")
                     raise e
+
+    def clean_backups(self) -> None:
+        """Deletes the entire migration backups directory to free up space."""
+        if os.path.exists(self.backup_dir):
+            logger.info(f"Deleting all backups at: {self.backup_dir}")
+            shutil.rmtree(self.backup_dir)
+            logger.info("Backup directory deleted successfully.")
+        else:
+            logger.info("No backups found to clean up.")

@@ -1,8 +1,11 @@
-# Antigravity to Antigravity IDE 마이그레이션 도구
+# Damn Antigravity IDE Migrator
 
-이 도구는 VSCode Fork 기반 구버전 **Antigravity** 애플리케이션의 설정, 플러그인(익스텐션), 대화 기록 데이터를 새로운 독립형 데스크톱 앱인 **Antigravity IDE**로 안전하게 이식해 주는 자동화 명령줄 도구입니다.
+이 도구는 VSCode Fork 기반 구버전 **Antigravity** (Antigravity 1.23.2 이하) 애플리케이션의 설정, 익스텐션, 대화 기록 데이터를 새로운 **Antigravity IDE**로 안전하게 이식해 주는 자동화 도구입니다.
 
-GitHub 오픈소스 배포를 고려하여 고수준의 예외 처리와 안전 설계가 적용되었습니다.
+> [!NOTE]
+> **제품명 변경 관련 안내**
+> - **기존 Antigravity (1.23.2 이하)**: IDE 기능이 포함되어 있던 기존의 Antigravity 에디터는 **Antigravity IDE**라는 별도의 제품으로 분리되었습니다. 기존 Antigravity 1.23.2 버전이 **Antigravity IDE**로 전환됩니다.
+> - **새로운 Antigravity**: 완전히 새로 출시된 독립형 데스크톱 애플리케이션이 **Antigravity**라는 이름을 사용하게 되었습니다.
 
 ## 주요 기능
 
@@ -37,49 +40,63 @@ GitHub 오픈소스 배포를 고려하여 고수준의 예외 처리와 안전 
 
 ## 사용 방법
 
-Windows 환경에서는 루트 디렉터리에 생성된 배치 파일을 사용하여 편리하게 실행하거나, 파이썬 명령어를 직접 터미널에 입력하여 실행할 수 있습니다.
+Windows 환경에서는 배치 파일을 사용하여 더블 클릭(원클릭)만으로 마이그레이션을 안전하게 실행하고 제어할 수 있습니다.
 
-### 1. Dry-Run 시뮬레이션 수행 (권장)
-실제 파일이나 DB를 수정하지 않고 사전에 모의 실행 결과를 확인합니다:
-- **배치 파일 사용**:
+### 1. Dry-Run 시뮬레이션 수행 (선택 사항)
+실제 파일이나 데이터베이스를 수정하지 않고, 어떤 파일이 복사되고 어떤 설정이 병합되는지 안전하게 모의 시뮬레이션을 수행합니다. 실제 데이터가 변경되지 않으므로, 작업 진행 전에 미리 확인하고 싶을 때 유용합니다.
+- **실행 방법**: 루트 폴더에 있는 `00_migrate-dry-run.bat` 파일을 더블 클릭하여 실행합니다.
+
+### 2. 마이그레이션 실행 (필수)
+실제 마이그레이션을 실행합니다. (실행 시 대상 폴더의 안전 백업이 자동으로 생성됩니다.)
+- **실행 방법**: 루트 폴더에 있는 `01_migrate.bat` 파일을 더블 클릭하여 실행합니다.
+
+> [!TIP]
+> **성공적인 이식을 위한 첫 실행 권장 수칙**
+> 마이그레이션이 완료되면 Antigravity IDE를 **최초로 한 번 실행**하여 모든 익스텐션이 완전히 로드될 때까지 기다린 후, **에디터를 완전히 종료했다가 재시작**해 주세요. 새로 추가된 일부 익스텐션 및 파일 아이콘 테마 등이 정상 인식되는 데 필요합니다.
+
+### 3. 백업 파일로부터 복원 (문제 발생 시 복구용)
+마이그레이션 도중 오류가 발생하거나 수동으로 백업된 특정 설정을 되돌려야 하는 경우:
+- **실행 방법**: 복원하고자 하는 백업 폴더 경로를 `02_restore.bat` 뒤에 인자로 지정하여 실행합니다.
   ```cmd
-  migrate.bat --dry-run --verbose
+  02_restore.bat "C:\Users\<사용자명>\AppData\Roaming\Antigravity IDE\migration_backups\<타임스탬프>"
   ```
-- **파이썬 명령어 사용**:
+
+### 4. 백업 파일 전체 정리 (선택 사항)
+마이그레이션 완료 후, 보관 중인 백업 파일을 모두 일괄 삭제하고 저장공간을 정리하고자 할 때 사용합니다.
+- **실행 방법**: 루트 폴더에 있는 `03_clean-backups.bat` 파일을 더블 클릭하여 실행합니다.
+
+---
+
+## CLI 옵션 및 사용 예시
+
+터미널이나 명령 프롬프트(CMD)에서 마이그레이션 스크립트를 직접 실행할 때 사용할 수 있는 옵션 및 예시입니다.
+
+### 1. 사용 예시
+- **도움말 출력**:
+  ```bash
+  python -m src.main --help
+  ```
+- **Dry-run 시뮬레이션 직접 수행 (상세 로그 포함)**:
   ```bash
   python -m src.main --dry-run --verbose
   ```
-
-### 2. 마이그레이션 실행
-실제 마이그레이션을 실행합니다 (대상 폴더의 백업이 자동 생성됩니다):
-- **배치 파일 사용**:
-  `migrate.bat` 파일을 더블 클릭하여 실행하거나, 터미널에서 다음 명령을 실행합니다:
-  ```cmd
-  migrate.bat
-  ```
-- **파이썬 명령어 사용**:
-  ```bash
-  python -m src.main
-  ```
-
-### 3. 백업 파일로부터 복원 (롤백 필요 시)
-문제가 발생하여 특정 백업 파일로부터 설정을 수동 복원해야 하는 경우:
-- **배치 파일 사용**:
-  ```cmd
-  restore.bat "C:\Users\<사용자명>\AppData\Roaming\Antigravity IDE\migration_backups\<타임스탬프>"
-  ```
-- **파이썬 명령어 사용**:
+- **백업 파일로부터 복원 수행**:
   ```bash
   python -m src.main --restore "C:\Users\<사용자명>\AppData\Roaming\Antigravity IDE\migration_backups\<타임스탬프>"
   ```
+- **백업 파일 전체 삭제 (정리)**:
+  ```bash
+  python -m src.main --cleanup
+  ```
 
-### 4. CLI 옵션 가이드
+### 2. CLI 옵션 목록
 ```text
 options:
   -h, --help           도움말 메시지를 출력하고 종료합니다.
   --dry-run            실제 파일이나 DB를 수정하지 않고 시뮬레이션만 수행합니다.
   --no-backup          마이그레이션 전 자동 백업 과정을 건너뜁니다 (권장하지 않음).
   --restore RESTORE    지정한 백업 폴더의 상태로 파일들을 복원합니다.
+  --cleanup            마이그레이션 백업 파일을 모두 삭제하여 공간을 확보합니다.
   -v, --verbose        콘솔 디버그 로그 출력을 활성화합니다.
 ```
 
@@ -101,3 +118,9 @@ options:
 ```bash
 python -m unittest tests/test_migration.py
 ```
+
+---
+
+## 라이선스
+
+이 프로젝트는 [MIT License](file:///d:/Dev/Damn-Antigravity-Converstation-Restore/LICENSE) 라이선스 하에 배포 및 사용이 가능합니다. 자세한 사항은 [LICENSE](file:///d:/Dev/Damn-Antigravity-Converstation-Restore/LICENSE) 파일을 참조하세요.

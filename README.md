@@ -1,8 +1,11 @@
-# Antigravity to Antigravity IDE Migration Tool
+# Damn Antigravity IDE Migrator
 
-A safe, robust, and automated command-line utility to migrate configurations, settings, extensions (plugins), and conversation history from the legacy VSCode-fork based **Antigravity** application to the new standalone **Antigravity IDE** desktop application.
+A safe, robust, and automated utility to migrate configurations, settings, extensions, and conversation history from the legacy VSCode-fork based **Antigravity** (Antigravity 1.23.2 and below) application to the new **Antigravity IDE**.
 
-Designed with high software engineering standards for open-source distribution.
+> [!NOTE]
+> **Product Naming Rebranding**
+> - **Legacy Antigravity (1.23.2 and below)**: The old VSCode Fork-based editor with IDE features has been split into a separate product called **Antigravity IDE**. The legacy Antigravity 1.23.2 version is transitioned to **Antigravity IDE**.
+> - **New Antigravity**: A completely new standalone desktop application has taken over the name **Antigravity**.
 
 ## Key Features
 
@@ -37,49 +40,63 @@ This tool requires **Python 3.8+** with no external dependencies (uses standard 
 
 ## Usage
 
-On Windows, you can use the provided batch files in the root directory for convenience, or run the raw python commands.
+On Windows, you can use the provided batch files for convenient, one-click execution via double-click.
 
-### 1. Perform a Dry-Run Simulation (Highly Recommended)
-Preview the actions without modifying any files:
-- **Using Batch File**:
+### 1. Perform a Dry-Run Simulation (Optional)
+Simulate the migration process safely without modifying any files or databases, allowing you to preview which files will copy and which settings will merge. Since no actual data is altered, this is useful to run before starting the real migration.
+- **How to Run**: Double-click the `00_migrate-dry-run.bat` file in the root directory.
+
+### 2. Run the Standard Migration (Required)
+Run the actual migration process. (This automatically creates a safe backup of the target folders.)
+- **How to Run**: Double-click the `01_migrate.bat` file in the root directory.
+
+> [!TIP]
+> **Post-Migration Startup Recommendation**
+> After the migration completes, **launch the Antigravity IDE for the first time**, wait a moment for all newly copied extensions to fully load, and then **completely close and restart the editor**. This ensures that all extensions and file icon themes are properly indexed and loaded by the VSCode engine cache.
+
+### 3. Restore from a Backup (Recovery on Issues)
+If an error occurs or you need to revert to a previous configuration backup:
+- **How to Run**: Run `02_restore.bat` followed by the backup folder path as an argument.
   ```cmd
-  migrate.bat --dry-run --verbose
+  02_restore.bat "C:\Users\<Username>\AppData\Roaming\Antigravity IDE\migration_backups\<timestamp>"
   ```
-- **Using Python**:
+
+### 4. Delete All Backups (Optional)
+If you no longer need the backup files after a successful migration and want to free up disk space:
+- **How to Run**: Double-click the `03_clean-backups.bat` file in the root directory.
+
+---
+
+## CLI Options & Usage Examples
+
+Available command-line flags and execution examples when running the migration script directly via terminal or Command Prompt (CMD):
+
+### 1. Usage Examples
+- **Show Help Message**:
+  ```bash
+  python -m src.main --help
+  ```
+- **Run Dry-run Simulation (with verbose logging)**:
   ```bash
   python -m src.main --dry-run --verbose
   ```
-
-### 2. Run the Standard Migration
-Perform the full migration (creates backup automatically):
-- **Using Batch File**:
-  Double-click `migrate.bat`, or run from terminal:
-  ```cmd
-  migrate.bat
-  ```
-- **Using Python**:
-  ```bash
-  python -m src.main
-  ```
-
-### 3. Restore from a Backup
-If you need to restore your settings from an automatically created backup:
-- **Using Batch File**:
-  ```cmd
-  restore.bat "C:\Users\<Username>\AppData\Roaming\Antigravity IDE\migration_backups\<timestamp>"
-  ```
-- **Using Python**:
+- **Restore from Backup Directory**:
   ```bash
   python -m src.main --restore "C:\Users\<Username>\AppData\Roaming\Antigravity IDE\migration_backups\<timestamp>"
   ```
+- **Delete All Backups (Cleanup)**:
+  ```bash
+  python -m src.main --cleanup
+  ```
 
-### 4. Command-Line Options
+### 2. Command-Line Options
 ```text
 options:
   -h, --help           show this help message and exit
   --dry-run            Simulate the migration without making any modifications to files or database.
   --no-backup          Skip automatic configuration backups before migration (not recommended).
   --restore RESTORE    Path to a backup directory to restore configurations from.
+  --cleanup            Delete all migration backups to free up space.
   -v, --verbose        Enable verbose debug logging in console.
 ```
 
@@ -101,3 +118,9 @@ Run unit tests to verify the migration logic under simulated directory structure
 ```bash
 python -m unittest tests/test_migration.py
 ```
+
+---
+
+## License
+
+This project is licensed under the [MIT License](file:///d:/Dev/Damn-Antigravity-Converstation-Restore/LICENSE) - see the [LICENSE](file:///d:/Dev/Damn-Antigravity-Converstation-Restore/LICENSE) file for details.
