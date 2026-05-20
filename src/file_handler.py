@@ -62,6 +62,50 @@ class FileMigrator:
         else:
             logger.info("No new settings to merge.")
 
+    def migrate_local_state(self) -> None:
+        """Copies or merges Local State containing safeStorage encryption master keys."""
+        old_local_state = os.path.join(self.paths.old_roaming, "Local State")
+        new_local_state = os.path.join(self.paths.new_roaming, "Local State")
+        
+        if not os.path.exists(old_local_state):
+            logger.warning(f"Old Local State not found at {old_local_state}. Skipping Local State migration.")
+            return
+            
+        logger.info(f"Migrating Local State from {old_local_state} to {new_local_state}")
+        
+        try:
+            with open(old_local_state, "r", encoding="utf-8") as f:
+                old_data = json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to read old Local State: {e}")
+            return
+            
+        new_data = {}
+        if os.path.exists(new_local_state):
+            try:
+                with open(new_local_state, "r", encoding="utf-8") as f:
+                    new_data = json.load(f)
+            except Exception as e:
+                logger.error(f"Failed to read existing new Local State: {e}")
+                
+        # Overwrite new Local State's encryption key with the old one
+        old_os_crypt = old_data.get("os_crypt", {})
+        if old_os_crypt:
+            new_data["os_crypt"] = old_os_crypt
+            
+            if self.dry_run:
+                logger.info(f"[Dry-Run] Would write master encryption key to {new_local_state}")
+            else:
+                try:
+                    os.makedirs(os.path.dirname(new_local_state), exist_ok=True)
+                    with open(new_local_state, "w", encoding="utf-8") as f:
+                        json.dump(new_data, f, indent=4, ensure_ascii=False)
+                    logger.info("Successfully migrated Local State (safeStorage encryption key)")
+                except Exception as e:
+                    logger.error(f"Failed to write merged Local State: {e}")
+                    raise e
+
+
     def migrate_extensions(self) -> None:
         """Copies physical extensions and merges/rewrites paths in extensions.json."""
         old_ext_dir = os.path.join(self.paths.old_dot, "extensions")

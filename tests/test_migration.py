@@ -67,6 +67,23 @@ class TestMigrationTool(unittest.TestCase):
         # Existing key should be overwritten with old preference
         self.assertEqual(result["workbench.colorTheme"], "Solarized Light")
 
+    def test_local_state_migration(self):
+        old_local_state = os.path.join(self.paths.old_roaming, "Local State")
+        new_local_state = os.path.join(self.paths.new_roaming, "Local State")
+        
+        with open(old_local_state, "w", encoding="utf-8") as f:
+            json.dump({"os_crypt": {"encrypted_key": "OLD_KEY_VALUE"}}, f)
+        with open(new_local_state, "w", encoding="utf-8") as f:
+            json.dump({"os_crypt": {"encrypted_key": "NEW_KEY_VALUE"}}, f)
+            
+        migrator = FileMigrator(self.paths)
+        migrator.migrate_local_state()
+        
+        with open(new_local_state, "r", encoding="utf-8") as f:
+            result = json.load(f)
+            
+        self.assertEqual(result["os_crypt"]["encrypted_key"], "OLD_KEY_VALUE")
+
     def test_extensions_migration(self):
         # 1. Create a dummy extension folder in old extensions
         old_ext_folder = os.path.join(self.paths.old_dot, "extensions", "my.dummy-extension-1.0.0")

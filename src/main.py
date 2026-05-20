@@ -129,6 +129,9 @@ def main() -> None:
         logger.info("1. Starting settings.json migration...")
         file_migrator.migrate_settings()
         
+        logger.info("1.5. Starting Local State (safeStorage master key) migration...")
+        file_migrator.migrate_local_state()
+        
         logger.info("2. Starting extensions (plugins) migration...")
         file_migrator.migrate_extensions()
         

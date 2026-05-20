@@ -38,6 +38,10 @@ class BackupManager:
             (
                 os.path.join(self.paths.new_dot, "extensions", "extensions.json"),
                 "extensions.json"
+            ),
+            (
+                os.path.join(self.paths.new_roaming, "Local State"),
+                "Local State"
             )
         ]
         
@@ -69,7 +73,8 @@ class BackupManager:
         restore_map = [
             ("settings.json", os.path.join(self.paths.new_roaming, "User", "settings.json")),
             ("state.vscdb", os.path.join(self.paths.new_roaming, "User", "globalStorage", "state.vscdb")),
-            ("extensions.json", os.path.join(self.paths.new_dot, "extensions", "extensions.json"))
+            ("extensions.json", os.path.join(self.paths.new_dot, "extensions", "extensions.json")),
+            ("Local State", os.path.join(self.paths.new_roaming, "Local State"))
         ]
         
         for name, dest_file in restore_map:
