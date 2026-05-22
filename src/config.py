@@ -16,7 +16,8 @@ class AppPaths:
     new_dot: str
     
     # Gemini data (conversations, brain, annotations, etc.)
-    # Same on both: ~/.gemini/antigravity
+    # - old: ~/.gemini/antigravity
+    # - new: ~/.gemini/antigravity-ide
     old_gemini: str
     new_gemini: str
 
