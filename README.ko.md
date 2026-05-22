@@ -42,6 +42,18 @@
 
 Windows 환경에서는 배치 파일을 사용하여 더블 클릭(원클릭)만으로 마이그레이션을 안전하게 실행하고 제어할 수 있습니다.
 
+### macOS 컴패니언 포트
+
+커뮤니티에서 만든 macOS용 버전은 아래 저장소에서 확인할 수 있습니다:
+
+```text
+https://github.com/cpu-coin/antigravity-ide-migrator-macos
+```
+
+이 버전은 Antigravity에서 Antigravity IDE로 마이그레이션한다는 동일한 목적을 유지하면서, `~/Library/Application Support/Antigravity`, `~/Library/Application Support/Antigravity IDE`, `~/.antigravity`, `~/.antigravity-ide` 같은 macOS 경로를 사용합니다. macOS `.command` 실행 파일, dry-run 지원, 복원 지원, 테스트도 포함되어 있습니다.
+
+macOS 포트는 이 원본 Windows 마이그레이터에 크레딧을 두고 만든 컴패니언 프로젝트입니다. 원하신다면 별도 링크된 컴패니언 저장소로 유지하거나, 이 프로젝트 안의 플랫폼별 구현으로 통합할 수 있습니다.
+
 ### 1. Dry-Run 시뮬레이션 수행 (선택 사항)
 실제 파일이나 데이터베이스를 수정하지 않고, 어떤 파일이 복사되고 어떤 설정이 병합되는지 안전하게 모의 시뮬레이션을 수행합니다. 실제 데이터가 변경되지 않으므로, 작업 진행 전에 미리 확인하고 싶을 때 유용합니다.
 - **실행 방법**: 루트 폴더에 있는 `00_migrate-dry-run.bat` 파일을 더블 클릭하여 실행합니다.
