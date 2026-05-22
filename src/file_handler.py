@@ -168,11 +168,13 @@ class FileMigrator:
                 if ext_id not in existing_ids:
                     # Convert paths in this extension metadata dict
                     ext_str = json.dumps(ext)
-                    # Replace paths from .antigravity to .antigravity-ide
+                    # Replace paths from .antigravity to .antigravity-ide (Windows desktop)
                     ext_str = ext_str.replace("/.antigravity/extensions", "/.antigravity-ide/extensions")
                     ext_str = ext_str.replace("\\.antigravity\\extensions", "\\.antigravity-ide\\extensions")
                     ext_str = ext_str.replace(".antigravity/extensions", ".antigravity-ide/extensions")
                     ext_str = ext_str.replace(".antigravity\\\\extensions", ".antigravity-ide\\\\extensions")
+                    # Replace paths from .antigravity-server to .antigravity-ide-server (WSL2)
+                    ext_str = ext_str.replace(".antigravity-server/extensions", ".antigravity-ide-server/extensions")
                     
                     merged_ext = json.loads(ext_str)
                     new_exts.append(merged_ext)
@@ -204,7 +206,8 @@ class FileMigrator:
         # Folder list to check and copy
         data_dirs = [
             "conversations", "brain", "prompting", "scratch", "context_state",
-            "annotations", "browser_recordings", "html_artifacts", "implicit", "knowledge"
+            "annotations", "browser_recordings", "html_artifacts", "implicit", "knowledge",
+            "code_tracker"
         ]
         
         for sub_dir in data_dirs:
