@@ -34,11 +34,25 @@ def setup_logging(verbose: bool) -> None:
     root_logger.addHandler(console_handler)
     root_logger.addHandler(file_handler)
 
-def is_process_running(process_name: str) -> bool:
-    """Checks if a process is running on Windows using tasklist."""
+def is_process_running(process_name: str, wsl2: bool = False) -> bool:
+    """Checks if a process is running.
+    
+    - Windows: uses tasklist
+    - WSL2 (--forwsl2): uses pgrep (strips .exe suffix automatically)
+    """
     try:
-        output = subprocess.check_output("tasklist", shell=True).decode("utf-8", errors="ignore")
-        return process_name.lower() in output.lower()
+        if wsl2:
+            # WSL2: strip .exe suffix and use pgrep
+            unix_name = process_name.replace(".exe", "")
+            result = subprocess.run(
+                ["pgrep", "-fi", unix_name],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            return result.returncode == 0
+        else:
+            output = subprocess.check_output("tasklist", shell=True).decode("utf-8", errors="ignore")
+            return process_name.lower() in output.lower()
     except Exception:
         return False
 
@@ -71,6 +85,11 @@ def main() -> None:
         action="store_true",
         help="Enable verbose debug logging in console."
     )
+    parser.add_argument(
+        "--forwsl2",
+        action="store_true",
+        help="Run migration for a WSL2 workspace. Must be run from inside WSL2 after completing the standard Windows migration first."
+    )
     
     args = parser.parse_args()
     setup_logging(args.verbose)
@@ -79,7 +98,7 @@ def main() -> None:
     logger.info("=== Damn Antigravity IDE Migrator ===")
     
     try:
-        paths = resolve_paths()
+        paths = resolve_paths(wsl2=args.forwsl2)
     except Exception as e:
         logger.error(f"Failed to resolve environment paths: {e}")
         sys.exit(1)
@@ -111,8 +130,8 @@ def main() -> None:
         
     # Standard migration flow
     # Check if target programs are running
-    is_old_running = is_process_running("Antigravity.exe")
-    is_new_running = is_process_running("Antigravity IDE.exe")
+    is_old_running = is_process_running("Antigravity.exe", wsl2=args.forwsl2)
+    is_new_running = is_process_running("Antigravity IDE.exe", wsl2=args.forwsl2)
     
     if is_old_running or is_new_running:
         running_apps = []
@@ -141,11 +160,16 @@ def main() -> None:
         file_migrator = FileMigrator(paths, dry_run=args.dry_run)
         db_migrator = DatabaseMigrator(paths, dry_run=args.dry_run)
         
-        logger.info("1. Starting settings.json migration...")
-        file_migrator.migrate_settings()
-        
-        logger.info("1.5. Starting Local State (safeStorage master key) migration...")
-        file_migrator.migrate_local_state()
+        # On WSL2, settings.json, Local State, and state.vscdb live on the
+        # Windows host, not inside WSL2. Skip those steps.
+        if args.forwsl2:
+            logger.info("Running in WSL2 mode. Skipping Windows-host-only steps (settings.json, Local State, state.vscdb).")
+        else:
+            logger.info("1. Starting settings.json migration...")
+            file_migrator.migrate_settings()
+            
+            logger.info("1.5. Starting Local State (safeStorage master key) migration...")
+            file_migrator.migrate_local_state()
         
         logger.info("2. Starting extensions (plugins) migration...")
         file_migrator.migrate_extensions()
@@ -153,8 +177,11 @@ def main() -> None:
         logger.info("3. Starting Gemini conversations and brain data synchronization...")
         file_migrator.migrate_gemini_data()
         
-        logger.info("4. Starting SQLite database merging...")
-        db_migrator.migrate()
+        if args.forwsl2:
+            logger.info("4. Skipping SQLite database merge (state.vscdb is on the Windows host).")
+        else:
+            logger.info("4. Starting SQLite database merging...")
+            db_migrator.migrate()
         
         if args.dry_run:
             logger.info("=== Dry-Run Simulation Finished Successfully ===")

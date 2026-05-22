@@ -244,5 +244,127 @@ class TestMigrationTool(unittest.TestCase):
         # Verify backup directory does not exist anymore
         self.assertFalse(os.path.exists(backup_mgr.backup_dir))
 
+
+class TestWSL2Migration(unittest.TestCase):
+    """Tests for WSL2 workspace migration (--forwsl2 flag)."""
+    
+    def setUp(self):
+        self.test_dir = tempfile.TemporaryDirectory()
+        base_path = self.test_dir.name
+        
+        # Simulate WSL2 server-side layout with -server suffix
+        self.paths = AppPaths(
+            old_roaming=os.path.join(base_path, ".antigravity-server", "data"),
+            new_roaming=os.path.join(base_path, ".antigravity-ide-server", "data"),
+            old_dot=os.path.join(base_path, ".antigravity-server"),
+            new_dot=os.path.join(base_path, ".antigravity-ide-server"),
+            old_gemini=os.path.join(base_path, ".gemini", "antigravity"),
+            new_gemini=os.path.join(base_path, ".gemini", "antigravity-ide")
+        )
+        
+        # Setup WSL2 directory structure
+        os.makedirs(os.path.join(self.paths.old_dot, "extensions"), exist_ok=True)
+        os.makedirs(os.path.join(self.paths.new_dot, "extensions"), exist_ok=True)
+        os.makedirs(os.path.join(self.paths.old_gemini, "conversations"), exist_ok=True)
+        os.makedirs(os.path.join(self.paths.new_gemini, "conversations"), exist_ok=True)
+        
+    def tearDown(self):
+        self.test_dir.cleanup()
+
+    def test_resolve_paths_wsl2_flag(self):
+        """Verify that resolve_paths(wsl2=True) returns -server suffix paths."""
+        from src.config import resolve_paths
+        # We can't fully test this without being in WSL2, but we can verify
+        # the flag switches to -server paths by checking the structure
+        paths = resolve_paths(wsl2=True)
+        self.assertIn(".antigravity-server", paths.old_dot)
+        self.assertIn(".antigravity-ide-server", paths.new_dot)
+        self.assertIn(".antigravity-server", paths.old_roaming)
+        self.assertIn(".antigravity-ide-server", paths.new_roaming)
+
+    def test_extensions_path_rewrite_server_suffix(self):
+        """Verify extensions.json paths are rewritten from -server to -ide-server."""
+        old_ext_folder = os.path.join(self.paths.old_dot, "extensions", "my.ext-1.0.0")
+        os.makedirs(old_ext_folder)
+        with open(os.path.join(old_ext_folder, "package.json"), "w") as f:
+            f.write('{"name": "test"}')
+            
+        old_json = [
+            {
+                "identifier": {"id": "my.ext"},
+                "version": "1.0.0",
+                "location": {
+                    "path": "/home/user/.antigravity-server/extensions/my.ext-1.0.0"
+                }
+            }
+        ]
+        new_json = []
+        
+        with open(os.path.join(self.paths.old_dot, "extensions", "extensions.json"), "w") as f:
+            json.dump(old_json, f)
+        with open(os.path.join(self.paths.new_dot, "extensions", "extensions.json"), "w") as f:
+            json.dump(new_json, f)
+            
+        migrator = FileMigrator(self.paths)
+        migrator.migrate_extensions()
+        
+        with open(os.path.join(self.paths.new_dot, "extensions", "extensions.json"), "r") as f:
+            result = json.load(f)
+            
+        self.assertEqual(len(result), 1)
+        self.assertEqual(
+            result[0]["location"]["path"],
+            "/home/user/.antigravity-ide-server/extensions/my.ext-1.0.0"
+        )
+
+    def test_gemini_code_tracker_sync(self):
+        """Verify code_tracker directory is synced (WSL2-specific data dir)."""
+        # Create code_tracker with subdirs
+        old_tracker = os.path.join(self.paths.old_gemini, "code_tracker")
+        os.makedirs(os.path.join(old_tracker, "active"), exist_ok=True)
+        os.makedirs(os.path.join(old_tracker, "history"), exist_ok=True)
+        with open(os.path.join(old_tracker, "active", "state.json"), "w") as f:
+            f.write('{"tracked": true}')
+            
+        migrator = FileMigrator(self.paths)
+        migrator.migrate_gemini_data()
+        
+        new_tracker_file = os.path.join(self.paths.new_gemini, "code_tracker", "active", "state.json")
+        self.assertTrue(os.path.exists(new_tracker_file))
+        with open(new_tracker_file, "r") as f:
+            self.assertEqual(f.read(), '{"tracked": true}')
+
+    def test_wsl2_skips_no_source_data(self):
+        """Verify migration gracefully handles missing old directories."""
+        # Use paths where old directories don't exist
+        empty_paths = AppPaths(
+            old_roaming=os.path.join(self.test_dir.name, "nonexistent_roaming"),
+            new_roaming=os.path.join(self.test_dir.name, "new_roaming"),
+            old_dot=os.path.join(self.test_dir.name, "nonexistent_dot"),
+            new_dot=os.path.join(self.test_dir.name, "new_dot"),
+            old_gemini=os.path.join(self.test_dir.name, "nonexistent_gemini"),
+            new_gemini=os.path.join(self.test_dir.name, "new_gemini")
+        )
+        
+        migrator = FileMigrator(empty_paths)
+        # Should not raise, just log warnings and skip
+        migrator.migrate_extensions()
+        migrator.migrate_gemini_data()
+
+    def test_wsl2_backup_uses_server_paths(self):
+        """Verify backup manager works with WSL2 -server suffix paths."""
+        # Create an extensions.json to back up
+        ext_json_path = os.path.join(self.paths.new_dot, "extensions", "extensions.json")
+        with open(ext_json_path, "w") as f:
+            json.dump([{"identifier": {"id": "test.ext"}}], f)
+            
+        backup_mgr = BackupManager(self.paths)
+        backup_path = backup_mgr.create_backup()
+        
+        self.assertTrue(os.path.exists(backup_path))
+        self.assertIn(".antigravity-ide-server", backup_path)
+        self.assertTrue(os.path.exists(os.path.join(backup_path, "extensions.json")))
+
+
 if __name__ == "__main__":
     unittest.main()
