@@ -42,6 +42,18 @@ This tool requires **Python 3.8+** with no external dependencies (uses standard 
 
 On Windows, you can use the provided batch files for convenient, one-click execution via double-click.
 
+### macOS Companion Port
+
+A community macOS adaptation is available at:
+
+```text
+https://github.com/cpu-coin/antigravity-ide-migrator-macos
+```
+
+It keeps the same migration goal for Antigravity to Antigravity IDE, but uses macOS paths such as `~/Library/Application Support/Antigravity`, `~/Library/Application Support/Antigravity IDE`, `~/.antigravity`, and `~/.antigravity-ide`. It also includes macOS `.command` launchers, dry-run support, restore support, and tests.
+
+The macOS port was built as a companion project with credit to this original Windows migrator. If preferred, it can remain a linked companion repo or be folded into this project as a platform-specific implementation.
+
 ### 1. Perform a Dry-Run Simulation (Optional)
 Simulate the migration process safely without modifying any files or databases, allowing you to preview which files will copy and which settings will merge. Since no actual data is altered, this is useful to run before starting the real migration.
 - **How to Run**: Double-click the `00_migrate-dry-run.bat` file in the root directory.
